@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Aplicación en Django y Google Maps{% endblock %}
+{% block container %}
+  <div id="map" class="capas"></div>
+  <div id="datos" class="capas">
+    <div id="data">
+      {% for item in qs %}
+        <ul>
+          <li>{{item.nombre}}, {{item.lat}}</li>
+        </ul>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  var markers = [];
+  var boundaries = [];
+
+  var locations = [
+        {% for item in qs %}
+            {
+            lat: {{ item.lat }},
+            lng: {{ item.long }},
+            name: "{{ item.nombre }}",
+            },
+        {% endfor %}
+    ]
+
+
+  // var watchId, startLat, startLong;
+  window.onload = function()
+  {
+    if (navigator.geolocation)
+    {
+      watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
+        maximumAge: 60000,
+        timeout: 5*60*1000,
+        enableHighAccurady: true
+      });
+    }
+  }
+
+  function onSuccess(position)
+  {
+
+    var currentLat = position.coords.latitude;
+    var currentLong = position.coords.longitude;
+
+  var initMap = function() {
+    var latlng = new google.maps.LatLng(currentLat, currentLong);
+    var map = new google.maps.Map(document.getElementById('map'), {
+    center: latlng,
+    scrollwheel: true,
+    zoom: 15,
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+  });
+
+  function createMarker(latlng, nombre){
+    var marker = new google.maps.Marker({
+      position: latlng,
+      map: map
+  });
+
+  return marker
+  }
+
+  if (locations.length > 0) {
+    for(var i = 0; i < locations.length; i++){
+      var obj = locations[i]
+      var latlng = {lat: obj.lat, lng: obj.lng}
+      var marker = createMarker(latlng, obj.nombre)
+      markers.push(marker)
+    }
+  }
+
+  // var Item_1 = new google.maps.LatLng(48.5983128, 8.9172776);
+
+  function createBoundaries(lat, lng)
+  {
+    var bound = new google.maps.LatLng(lat, lng);
+    return bound
+  }
+
+  if (locations.length > 0) {
+    for(var i = 0; i < locations.length; i++){
+      var obj = locations[i]
+      var lat = obj.lat
+      var lng = obj.lng
+      var bound = createBoundaries(lat, lng)
+      boundaries.push(bound)
+    }
+  }
+
+  var latlngbounds = new google.maps.LatLngBounds();
+  if (boundaries.length > 0){
+    for(var i=0; i<boundaries.length;i++)
+    {
+      latlngbounds.extend(boundaries[i])
+    }
+  }
+  map.fitBounds(latlngbounds);
+
+
+  }
+  initMap()
+  }
+
+  function onError(error)
+  {
+    switch(error.code)
+    {
+      case PERMISION_DENIED:
+        alert("User denied permission");
+        break;
+      case TIMEOUT:
+        alert("Geolocation timed out");
+        break;
+      case POSITION_UNAVAILABLE:
+        alert("Geolocation information is not available")
+        break;
+      default:
+        alert("Unknown error");
+        break;
+    }
+  }
+
+</script>
+{% endblock %}

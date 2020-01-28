@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Aplicación en Django y Google Maps{% endblock %}
+{% block container %}
+  <div id="mapa" class="capas"></div>
+  <div id="datos" class="capas">
+    <div id="form">
+      <form action="" id="form_coords" method="POST">{% csrf_token %}
+        {{ form.as_p }}
+        <p>
+          <input type="submit" value="Guardar ubicación">
+        </p>
+      </form>
+    </div>
+    <div id="data">
+        <ul>
+          <li>{{qs.nombre}}, {{qs.lat}}</li>
+        </ul>
+    </div>
+  </div>
+{% endblock %}
